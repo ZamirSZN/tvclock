@@ -122,4 +122,4 @@ ScreenManager:
                 min: 100
                 max: 1000
                 step: 10
-                on_color: app.send('font_size/clock', *self.color)
+                on_value: app.send('font_size/clock', self.value)

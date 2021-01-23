@@ -20,6 +20,7 @@ class Remote(App):
     background_color = ColorProperty('#000000FF')
     clock_color = ColorProperty('#000000FF')
     clock_font_size = NumericProperty()
+    current_screen = StringProperty()
 
     def __init__(self, **kwargs):
         super(Remote, self).__init__(**kwargs)

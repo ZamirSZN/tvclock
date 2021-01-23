@@ -10,7 +10,7 @@ package.name = colorclockremote
 package.domain = org.test
 
 # (str) Source code where the main.py live
-source.dir = src/
+source.dir = client/
 
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py,png,jpg,kv,atlas
@@ -85,7 +85,7 @@ fullscreen = 0
 #android.presplash_color = #FFFFFF
 
 # (list) Permissions
-#android.permissions = INTERNET
+android.permissions = INTERNET
 
 # (int) Target Android API, should be as high as possible.
 #android.api = 27
