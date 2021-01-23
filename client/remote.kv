@@ -1,0 +1,125 @@
+<ScanResult@Button>:
+    host: ''
+    name: ''
+    text: '{}({})'.format(self.name, self.host)
+
+    on_press: app.select_host(self.host)
+
+<XButton@Button>:
+    size_hint: None, None
+    size: 150, 150
+
+<HBox@BoxLayout,VBox@BoxLayout>:
+    size_hint: None, None
+    size: self.minimum_size
+    spacing: dp(20)
+
+<VBox>:
+    orientation: 'vertical'
+
+<CSlider@Slider>:
+    min: 0
+    max: 1
+    orientation: 'horizontal'
+    size_hint: 1, None
+    height: 80
+
+<CLabel@Label>:
+    size_hint: None, None
+    size: self.texture_size
+
+<ColorChoice@GridLayout>:
+    color: [0, 0, 0]
+    size_hint: 1, None
+    height: self.minimum_height
+    cols: 2
+
+    CLabel:
+        text: 'R'
+    CSlider:
+        id: r
+        value: root.color[0]
+        on_value: root.color[0] = self.value
+    CLabel:
+        text: 'G'
+    CSlider:
+        id: g
+        value: root.color[1]
+        on_value: root.color[1] = self.value
+    CLabel:
+        text: 'B'
+    CSlider:
+        id: b
+        value: root.color[2]
+        on_value: root.color[2] = self.value
+
+<Sizer@GridLayout>:
+    value: slider.value
+    min: 0
+    max: 100
+    size_hint_y: None
+    height: 80
+    rows: 1
+    CLabel:
+        text: 'size'
+    CSlider:
+        id: slider
+        min: root.min
+        max: root.max
+        value: root.value
+
+ScreenManager:
+    current: app.current_screen
+
+    Screen:
+        Label:
+            text: 'wait'
+
+    Screen:
+        name: 'connect'
+
+        FloatLayout:
+            BoxLayout:
+                orientation: 'vertical'
+                Button:
+                    text: 'discover'
+                    size_hint_y: None
+                    height: dp(48)
+                    on_press: app.scan()
+
+                RecycleView:
+                    data: app.scan_results
+                    viewclass: 'ScanResult'
+
+                    RecycleBoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        default_size_hint: 1, None
+                        default_size: 0, dp(50)
+
+    Screen:
+        name: 'remote'
+
+        VBox:
+            pos_hint: {'center_x': .5, 'top': 1}
+            size_hint_x: 1
+            padding: 20
+            CLabel:
+                text: 'background'
+            ColorChoice:
+                color: app.background_color
+                on_color: app.send('color/background', *self.color)
+            CLabel:
+                text: 'clock color'
+            ColorChoice:
+                color: app.clock_color
+                on_color: app.send('color/clock', *self.color)
+            CLabel:
+                text: 'clock font size'
+            CSlider:
+                value: app.clock_font_size
+                min: 100
+                max: 1000
+                step: 10
+                on_color: app.send('font_size/clock', *self.color)

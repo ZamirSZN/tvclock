@@ -1,0 +1,165 @@
+#:import A kivy.animation.Animation
+#:import glob glob.glob
+#:import F kivy.factory.Factory
+#:import sin math.sin
+#:import cos math.cos
+#:import reduce functools.reduce
+#:import RGBA kivy.utils.rgba
+
+<Widget>:
+    visible: True
+    visible_targets:
+        {
+        True: {
+        'opacity': 1,
+        },
+        False: {
+        'opacity': 0,
+        }
+        }
+    on_visible:
+        A.cancel_all(self, 'opacity')
+        A(d=.3, t='out_quad', **self.visible_targets[self.visible]).start(self)
+
+<Page@Screen>:
+    index: 0
+    on_pre_enter:
+        self.index = 0
+
+
+<ImagePage@Page>:
+    anim_delay: 1/60
+    image: ''
+    image_opacity: 1
+    background_color: '#00000000'
+
+    Image:
+        source: root.image
+        size_hint: None, None
+        size: [min(wh) for wh in zip(root.size, self.texture_size)]
+        pos_hint: {'center': (.5, .5)}
+        anim_delay: root.anim_delay
+        opacity: root.image_opacity
+
+        canvas.before:
+            Color:
+                rgba: RGBA(root.background_color)
+            Rectangle:
+                pos: self.center_x - self.norm_image_size[0] / 2, self.center_y - self.norm_image_size[1] / 2
+                size: self.norm_image_size
+
+
+<VBox@BoxLayout>:
+    orientation: 'vertical'
+    size_hint: .5, None
+    height: self.minimum_height
+    pos_hint: {'center': (.5, .5)}
+    spacing: '20dp'
+
+<PVBox@VBox>:
+    min: 0
+    index: 0
+    size_hint_x: 1
+    max: self.min + len(self.children)
+    visible: self.min <= self.index < self.max
+    pos_hint: {'top': .8}
+
+<Logo>:
+    transitions: {'pos': 'out_quad', 'size': 'out_elastic'}
+    size: [max(150, min(300, wh)) for wh in img.texture_size]
+    size_hint: None, None
+    image_center: 0, 0
+    Image:
+        id: img
+        source: root.source
+        visible: True
+        center: root.image_center
+        allow_stretch: True
+
+
+<ShaderPage@Page>:
+    source: ''
+    ShaderWidget:
+        source: root.source
+
+
+<ShaderWidget>:
+    canvas:
+        Color:
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<Label>:
+    font_name: '/usr/share/fonts/truetype/lato/Lato-Black.ttf'
+
+
+<Title@Label>:
+    font_size: app.title_font_size
+    color: app.title_color
+    size_hint: None, None
+    size: self.texture_size
+    pos_hint: {'center_x': .5}
+    font_name: '/usr/share/fonts/truetype/gentium/Gentium-R.ttf'
+
+
+<Paragraph@Label>:
+    text_size: self.size[0], None
+    color: app.paragraph_color
+    size_hint_y: None
+    height: self.texture_size[1]
+    font_size: app.paragraph_font_size
+
+
+<LogoPage@Page>:
+    logos: glob('logos/*.png')
+
+    StackLayout:
+        id: sl
+        padding: '20dp'
+        spacing: '20dp'
+        sources: root.logos[:root.index]
+        images:
+            [
+            F.Logo.get(source, image_center=self.center)
+            for source in
+            self.sources
+            ]
+        on_images:
+            self.clear_widgets()
+            for img in self.images: self.add_widget(img)
+            removed = [key for key in F.Logo._cache if key not in self.sources]
+            for img in removed: F.Logo._cache.pop(img)
+
+        canvas.before:
+            Color:
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: 50, 50, 50, 50
+
+    Paragraph:
+        text: '… and millions more'
+        visible: root.index > len(root.logos)
+        color: 0, 0, 0, 1
+        font_size: 2 * app.paragraph_font_size
+        size_hint: .5, None
+        text_size: None, None
+        size: self.texture_size
+        pos_hint: {'x': .5, 'y': .1}
+
+FloatLayout:
+    canvas.before:
+        Color:
+            rgba: app.background_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        Label:
+            text: app.clocktime
+            size_hint_y: None
+            height: self.texture_size[1]
+            font_size: app.clock_font_size
+            color: app.clock_color
