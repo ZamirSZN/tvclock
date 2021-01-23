@@ -70,30 +70,28 @@ if __name__ == '__main__':
     @mainthread
     def _background_color(r, g, b, a):
         print(r, g, b, a)
-        print("got down")
         APP.background_color = r, g, b, 1
 
     @SERVER.address(b'/color/clock')
     @mainthread
     def _clock_color(r, g, b, a):
         print(r, g, b, a)
-        print("got down")
-        APP.background_color = r, g, b, 1
+        APP.clock_color = r, g, b, 1
 
     @SERVER.address(b'/font_size/clock')
     @mainthread
-    def _clock_font_size(r, g, b, a):
-        print(r, g, b, a)
-        print("got down")
-        APP.background_color = r, g, b, 1
+    def _clock_font_size(font_size):
+        APP.clock_font_size = font_size
 
     @SERVER.address(b'/get_conf')
     def _send_conf():
         SERVER.answer(
             b'/conf',
-            [
-                APP.background_color[:3],
-            ],
+            tuple(
+                APP.background_color[:3]
+                + APP.clock_color[:3]
+                + [APP.clock_font_size]
+            ),
             port=PEER_PORT
         )
 
