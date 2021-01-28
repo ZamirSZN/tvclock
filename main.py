@@ -1,14 +1,21 @@
+import json
+import shlex
+from os.path import exists
 from socket import gethostname
 from datetime import datetime
-import json
-from os.path import exists
+from subprocess import Popen, PIPE
+from threading import Thread
+from select import select
+from uuid import uuid4
 
 from oscpy.server import OSCThreadServer
 
 from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.core.window import Window
-from kivy.properties import ColorProperty, StringProperty, NumericProperty
+from kivy.properties import (
+    ColorProperty, StringProperty, NumericProperty, DictProperty, ListProperty
+)
 
 PORT = 9999
 PEER_PORT = 9998
@@ -26,6 +33,9 @@ class Application(App):
     clock_color = ColorProperty('#FFFFFFFF')
     clocktime = StringProperty("")
     clock_font_size = NumericProperty('100dp')
+    commands = DictProperty()
+    command_output = []
+    running_commands = ListProperty()
 
     def on_start(self, *_):
         Clock.schedule_interval(self.update_clocktime, .1)
@@ -49,16 +59,47 @@ class Application(App):
             'background_color': self.background_color,
             'clock_color': self.clock_color,
             'clock_font_size': self.clock_font_size,
+            'commands': self.commands,
         }
 
         with open(CONF, 'w') as f:
-            json.dump(conf, f)
+            json.dump(conf, f, indent=2)
+
+    def run_command(self, command):
+        Thread(target=self._run_command).start()
+
+    def _run_command(self, command):
+        cmd = self.commands.get(command)
+        p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
+        uuid = uuid4()
+        self.running_commands.append((command, uuid))
+        while p.returncode is None:
+            read, _, _ = select([p.stderr, p.stdout], [], [], 1)
+            for r in read:
+                self.handle_command_output(r.readline())
+
+    @mainthread
+    def handle_command_output(self, output):
+        self.command_output.append(output)
 
 
 if __name__ == '__main__':
     APP = Application()
     SERVER = OSCThreadServer(encoding='utf8')
     SERVER.listen(address='0.0.0.0', port=PORT, default=True)
+
+    @SERVER.address(b'/run')
+    def _run(command):
+        print(command)
+        APP.run_command(command)
+
+    @SERVER.address(b'/get_commands')
+    def _get_commands():
+        SERVER.answer(
+            b'/commands',
+            tuple(APP.commands),
+            port=PEER_PORT,
+        )
 
     @SERVER.address(b'/probe')
     def _probe(*_):

@@ -156,6 +156,18 @@ FloatLayout:
             pos: self.pos
             size: self.size
 
+    RecycleView:
+        data: [{'text': output} for outpit in app.command_output]
+        viewclass: 'Label'
+        size_hint_y: .5
+        pos_hint: {'top': 1}
+        RecycleBoxLayout:
+            orientation: 'vertical'
+            height: self.minimum_height
+            size_hint_y: None
+            default_size_hint: 1, None
+            default_size: 0, dp(40)
+
     BoxLayout:
         Label:
             text: app.clocktime
